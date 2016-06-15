@@ -1,0 +1,52 @@
+<?php
+/**
+ * @file
+ * itm_dbform.install
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function itm_dbform_schema() {
+  $schema['itm_dbform'] = array(
+    'description' => '',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'description' => 'The form ID',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'The user ID',
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'not null' => TRUE,
+        'description' => 'The name of the user',
+        'length' => 128,
+      ),
+      'description' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => 'The user bio',
+      ),
+      'age' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'The age',
+      ),
+    ),
+    'primary key' => array('id'),
+    'foreign key' => array(
+      'users_itm_dbform' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid'),
+      ),
+    ),
+  );
+
+  return $schema;
+}
