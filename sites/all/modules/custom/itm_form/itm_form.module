@@ -1,0 +1,105 @@
+<?php
+
+/**
+ * @file
+ *
+ * itm_form.module
+ */
+
+/**
+ * Implements hook_help.
+ */
+function itm_form_help($path, $arg) {
+  switch($path) {
+    // Seeing the help page for ITM Form.
+    case "admin/help#itm_form":
+      return '<p>' . t("This is the help form for the module 'ITM Form', just an example of how to use hook_help.") . '</p>';
+  }
+}
+
+/**
+ * Implements hook_menu.
+ */
+function itm_form_menu() {
+  $items = array();
+
+  $items['itm/form'] = array(
+    'title' => t('ITM form'),
+    'description' => t('Some text to describe the page.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('itm_form_form'),
+    'access callback' => TRUE,
+  );
+
+  return $items;
+}
+
+/**
+ * Form itm_form_form.
+ */
+function itm_form_form($form, &$form_state) {
+  $form['group'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('My first form'),
+    '#collapsible' => TRUE,
+  );
+
+  $form['group']['itm_name'] = array(
+    '#type' => 'textfield',
+    '#description' => t('Add your name here.'),
+    '#title' => t('Name'),
+    '#size' => 50,
+    '#required' => TRUE,
+    '#default_value' => variable_get('itm_name', ''),
+  );
+
+  $form['group']['itm_description'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Bio'),
+    '#description' => t('Talk about yourself.'),
+    '#cols' => 100,
+    '#resizable' => FALSE,
+    '#required' => TRUE,
+    '#default_value' => variable_get('itm_description', ''),
+  );
+
+  $form['group']['itm_age'] = array(
+    '#type' => 'textfield',
+    '#description' => t('Add your age here.'),
+    '#title' => t('Age'),
+    '#size' => 10,
+    '#required' => TRUE,
+    '#default_value' => variable_get('itm_age', ''),
+  );
+
+  $form['group']['itm_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send'),
+  );
+
+  return $form;
+}
+
+/**
+ * Validate function to itm_form_form.
+ */
+function itm_form_form_validate($form, &$form_state) {
+  if (!is_numeric($form_state['values']['itm_age']) || !$form_state['values']['itm_age'] > 0) {
+    form_set_error('itm_age', 'The age should be a positive number.');
+  }
+}
+
+/**
+ * Submit function to itm_form_form.
+ */
+function itm_form_form_submit($form, &$form_state) {
+  variable_set('itm_name', $form_state['values']['itm_name']);
+  variable_set('itm_description', $form_state['values']['itm_description']);
+  variable_set('itm_age', $form_state['values']['itm_age']);
+  drupal_set_message('The form has been saved correctly.');
+}
+
+
+
+
+
