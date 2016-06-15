@@ -1,0 +1,170 @@
+<?php
+
+/**
+ * @file
+ *
+ * itm_dbform.module
+ */
+
+/**
+ * Implements hook_help.
+ */
+function itm_dbform_help($path, $arg) {
+  switch($path) {
+    // Seeing the help page for ITM Form.
+    case "admin/help#itm_dbform":
+      return '<p>' . t("This is the help form for the module 'ITM DB Form', just an example of how to use hook_help.") . '</p>';
+  }
+}
+
+/**
+ * Implements hook_menu.
+ */
+function itm_dbform_menu() {
+  $items = array();
+
+  $items['itm/dbform'] = array(
+    'title' => t('ITM DB form'),
+    'description' => t('Some text to describe the page.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('itm_dbform_form'),
+    'access callback' => TRUE,
+  );
+
+  return $items;
+}
+
+/**
+ * Form itm_dbform_form.
+ */
+function itm_dbform_form($form, &$form_state) {
+  global $user;
+  $result = _get_data_by_uid($user->uid);
+
+  /*
+    // Esta es la forma extendida del if, pero es equivalente a lo que está en la
+    // línea 55.
+  if (!empty($result)) {
+    $default_values = $result;
+  }
+  else {
+    $default_values = array();
+  }
+  */
+
+  $default_values = !empty($result) ? $result : array('name' => '', 'description' => '', 'age' => '');
+  dpm($default_values, 'valores por defecto');
+
+  $form['db_group'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('My first form integrated with the database'),
+    '#collapsible' => TRUE,
+  );
+
+  $form['db_group']['itmdb_name'] = array(
+    '#type' => 'textfield',
+    '#description' => t('Add your beautiful name here.'),
+    '#title' => t('Name'),
+    '#size' => 50,
+    '#required' => TRUE,
+    '#default_value' => $default_values['name'],
+  );
+
+  $form['db_group']['itmdb_description'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Bio'),
+    '#description' => t('Tell us how awesome you are.'),
+    '#cols' => 100,
+    '#resizable' => FALSE,
+    '#required' => TRUE,
+    '#default_value' => $default_values['description'],
+  );
+
+  $form['db_group']['itmdb_age'] = array(
+    '#type' => 'textfield',
+    '#description' => t('Add your mental age here.'),
+    '#title' => t('Age'),
+    '#size' => 10,
+    '#required' => TRUE,
+    '#default_value' => $default_values['age'],
+  );
+
+  $form['db_group']['itmdb_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send'),
+  );
+
+  return $form;
+}
+
+/**
+ * Validate function to itm_dbform_form.
+ */
+function itm_dbform_form_validate($form, &$form_state) {
+  if (!is_numeric($form_state['values']['itmdb_age']) || !$form_state['values']['itmdb_age'] > 0) {
+    form_set_error('itmdb_age', 'The age should be a positive number.');
+  }
+}
+
+/**
+ * Submit function to itm_dbform_form.
+ */
+function itm_dbform_form_submit($form, &$form_state) {
+  global $user;
+  $result = _get_data_by_uid($user->uid);
+  if (empty($result)) {
+    // Insertar un nuevo registro.
+    dpm(_insert_new_data($form_state['values']), 'inserted');
+  }
+  else {
+    // Actualizar registro.
+    dpm($result, 'registro de la bd');
+    _update_data($form_state['values'], $result['id']);
+  }
+}
+
+/**
+ * Traer los datos que estén guardados en la bd para este usuario.
+ */
+function _get_data_by_uid($uid) {
+  $result = db_select('itm_dbform', 'i')
+    ->fields('i', array('id', 'name', 'description', 'age'))
+    ->condition('i.uid', $uid, '=')
+    ->execute();
+  return $result->fetchAssoc();
+}
+
+/**
+ * Insertar los datos del formulario.
+ */
+function _insert_new_data($data) {
+  dpm($data);
+  global $user;
+
+  $id = db_insert('itm_dbform')
+    ->fields(array(
+      'uid' => $user->uid,
+      'name' => $data['itmdb_name'],
+      'description' => $data['itmdb_description'],
+      'age' => (int) $data['itmdb_age'],
+    ))
+    ->execute();
+  return $id;
+}
+
+/**
+ * Actualizar los datos del formulario.
+ */
+function _update_data($data, $submission_id) {
+  dpm($data, 'datos en el update');
+  $updated = db_update('itm_dbform')
+    ->fields(array(
+      'name' => $data['itmdb_name'],
+      'description' => $data['itmdb_description'],
+      'age' => $data['itmdb_age'],
+    ))
+    ->condition('id', $submission_id, '=')
+    ->execute();
+  dpm($updated, 'se actualizaron estos registros:');
+}
+
